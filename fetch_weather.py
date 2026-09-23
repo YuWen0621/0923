@@ -71,7 +71,7 @@ def main():
         print("🔄 自動切換至氣象署現行一週天氣預報資料集 (F-D0047-091) 進行取得...")
         data = get_weather_data("F-D0047-091")
 
-    # 3. 輸出回傳之 JSON 資料以供觀察結構
+    # 3. 輸出回傳之 JSON 資料以供觀察結構，並儲存為 weather_raw.json
     if data:
         print("\n" + "=" * 60)
         print("🔍 回傳的 JSON 資料結構 (使用 json.dumps 格式化)：")
@@ -81,6 +81,12 @@ def main():
         print("\n" + "=" * 60)
         print("✅ 任務 1 驗證完成：已成功取得並顯示天氣預報 JSON 資料！")
         print("=" * 60)
+
+        # 將原始 JSON 儲存為 weather_raw.json，供 parse_weather.py 使用
+        raw_path = "weather_raw.json"
+        with open(raw_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(f"\n💾 原始 JSON 資料已儲存至：{raw_path}")
     else:
         print("\n❌ 任務 1 失敗：未能取得天氣資料，請檢查 API Key 或網路連線。")
 
