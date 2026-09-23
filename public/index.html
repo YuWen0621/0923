@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taiwan Weather Forecast Dashboard</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="theme-light">
+  <!-- Toast notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Top Navigation & Controls Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <!-- Title -->
+      <div class="col-brand">
+        <span class="app-title">⛅ 臺灣天氣預報</span>
+        <span class="app-subtitle">CWA 中央氣象署</span>
+      </div>
+
+      <!-- Time & Status -->
+      <div class="col-status">
+        <div class="status-row">
+          ⏱️ <b>現在時間：</b><span id="txt-now-time" class="highlight-clock">--</span> <span class="note-tz">(臺北)</span>
+        </div>
+        <div class="status-row">
+          📡 <b>氣象更新：</b><span id="txt-fetch-time" class="highlight-update">--</span> <span class="note-tz">(每6h)</span>
+        </div>
+      </div>
+
+      <!-- Date selector -->
+      <div class="col-control">
+        <label for="select-date">📅 預報日期</label>
+        <select id="select-date"></select>
+      </div>
+
+      <!-- Region selector -->
+      <div class="col-control">
+        <label for="select-region">📍 地區</label>
+        <select id="select-region">
+          <option value="">(點選地圖分區)</option>
+          <option value="北部地區">北部地區</option>
+          <option value="中部地區">中部地區</option>
+          <option value="南部地區">南部地區</option>
+          <option value="東北部地區">東北部地區</option>
+          <option value="東部地區">東部地區</option>
+          <option value="東南部地區">東南部地區</option>
+        </select>
+      </div>
+
+      <!-- Actions -->
+      <div class="col-actions">
+        <button id="btn-refresh" class="btn btn-primary" title="呼叫 CWA API 取得最新預報">
+          <span id="refresh-spinner" class="spinner hidden"></span>
+          <span id="refresh-text">🔄最新預報</span>
+        </button>
+        <button id="btn-info" class="btn btn-secondary" title="檢視資料來源、分區原則與聚合說明">
+          ℹ️ 說明
+        </button>
+        <button id="btn-theme" class="btn btn-secondary" title="切換淺色 / 深色主題">
+          🌙 深色
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View Container: Map + Optional Side Panel -->
+  <main class="main-content">
+    <div id="map-wrapper" class="map-wrapper full-width">
+      <div id="map"></div>
+      <div class="map-legend">
+        <span>🎨 氣溫圖例：</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#2E86AB"></span> &lt;20°C 偏涼</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#48A9A6"></span> 20–25°C 舒適</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#F4D35E"></span> 25–30°C 偏熱</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#EE6055"></span> ≥30°C 炎熱</span>
+        <span class="legend-tip" id="legend-tip">💡 提示：點擊地圖上的任一天氣分區區塊，即可展開該分區氣象資訊與一週氣溫趨勢折線圖。</span>
+      </div>
+    </div>
+
+    <!-- Side Detail Panel -->
+    <aside id="side-panel" class="side-panel hidden">
+      <div class="panel-header">
+        <h3 id="panel-region-title">📍 北部地區</h3>
+        <button id="btn-close-panel" class="btn-close" title="關閉資訊面板並返回全螢幕地圖">✕ 關閉</button>
+      </div>
+
+      <!-- Current Day Card -->
+      <div id="panel-weather-card" class="weather-card">
+        <div class="card-top">
+          <span class="card-date">預報日期：<b id="card-date-val">--</b></span>
+          <span id="card-avg-badge" class="avg-badge">平均 --°C</span>
+        </div>
+        <div class="card-body">
+          <div>🌡️ 氣溫：<b id="card-temp-range">--</b></div>
+          <div>🌤️ 天氣：<b id="card-weather-val">--</b> ｜ 💧 降雨機率：<b id="card-pop-val">--</b></div>
+        </div>
+      </div>
+
+      <!-- 7-day Line Chart -->
+      <div class="panel-section">
+        <h4 class="section-title">📈 一週氣溫折線圖</h4>
+        <div class="chart-container">
+          <canvas id="forecastChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 7-day Table -->
+      <div class="panel-section">
+        <h4 class="section-title">📋 一週詳細預報數據</h4>
+        <div class="table-wrapper">
+          <table class="forecast-table">
+            <thead>
+              <tr>
+                <th>預報日期</th>
+                <th>MinT</th>
+                <th>MaxT</th>
+                <th>天氣現象</th>
+                <th>降雨機率</th>
+              </tr>
+            </thead>
+            <tbody id="forecast-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    資料來源：中央氣象署 (CWA) 臺灣一週天氣預報 ｜ CWA_HW1
+  </footer>
+
+  <!-- Info Modal -->
+  <div id="info-modal" class="modal hidden">
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>ℹ️ 氣象資料來源與聚合說明</h3>
+        <button id="btn-modal-close" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h5>1. 資料來源與性質</h5>
+        <ul>
+          <li><b>資料集</b>：交通部中央氣象署 (CWA) <code>F-D0047-091</code>「臺灣各縣市未來 1 週逐 12 小時天氣預報」。</li>
+          <li><b>預報性質</b>：本系統呈現為「未來一週天氣預報」（由數值模型預測產製），非測站之即時觀測數據。</li>
+        </ul>
+
+        <h5>2. 六大氣象分區劃分</h5>
+        <ul>
+          <li><b>北部地區 (6)</b>：臺北市、新北市、基隆市、桃園市、新竹市、新竹縣</li>
+          <li><b>中部地區 (5)</b>：臺中市、苗栗縣、彰化縣、南投縣、雲林縣</li>
+          <li><b>南部地區 (6)</b>：臺南市、高雄市、嘉義市、嘉義縣、屏東縣、澎湖縣</li>
+          <li><b>東北部地區 (1)</b>：宜蘭縣</li>
+          <li><b>東部地區 (1)</b>：花蓮縣</li>
+          <li><b>東南部地區 (1)</b>：臺東縣</li>
+        </ul>
+
+        <h5>3. 六大分區聚合原則 (Aggregation Rules)</h5>
+        <ul>
+          <li><b>最高溫 (MaxT)</b>：各縣市每日取白日時段 (06:00 起) 之最高值；同分區內各縣市取平均值，保留一位小數。</li>
+          <li><b>最低溫 (MinT)</b>：各縣市每日取各時段之最低值；同分區內各縣市取平均值，保留一位小數。</li>
+          <li><b>天氣現象 (Weather)</b>：類別文字不可直接平均，以該分區所屬各縣市白日時段出現頻率最高者（眾數 Mode）作為代表。</li>
+          <li><b>降雨機率 (PoP)</b>：計算該分區所有縣市當日有效 12 小時降雨機率之平均值（四捨五入至整數百分比）；無資料（「-」）排除不計。</li>
+        </ul>
+
+        <h5>4. 六小時自動新鮮度檢查</h5>
+        <ul>
+          <li>系統啟動時自動比對最後擷取時間，若距離前次同步已超過 6 小時，將主動獲取中央氣象署最新預報資料；亦可點擊「🔄最新預報」手動連線更新。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet & Chart.js -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
