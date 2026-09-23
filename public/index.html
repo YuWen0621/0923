@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body class="theme-light">
   <!-- Toast notification -->
   <div id="toast" class="toast"></div>
@@ -59,7 +61,7 @@
       <div class="col-actions">
         <button id="btn-refresh" class="btn btn-primary" title="呼叫 CWA API 取得最新預報">
           <span id="refresh-spinner" class="spinner hidden"></span>
-          <span id="refresh-text">🔄最新預報</span>
+          <span id="refresh-text">🔄API最新預報</span>
         </button>
         <button id="btn-info" class="btn btn-secondary" title="檢視資料來源、分區原則與聚合說明">
           ℹ️ 說明
@@ -184,4 +186,5 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>
