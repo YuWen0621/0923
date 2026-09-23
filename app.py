@@ -733,7 +733,7 @@ def main():
 
     st.markdown("---")
     st.caption(
-        "資料來源：中央氣象署 (CWA) 臺灣一週天氣預報 ｜ 儲存於 SQLite 資料庫 (`data.db`) ｜ HW10 Stage 3-B-1"
+        "資料來源：中央氣象署 (CWA) 臺灣一週天氣預報 ｜ 儲存於 SQLite 資料庫 (`data.db`) ｜CWA_HW1"
     )
 
 
