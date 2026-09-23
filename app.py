@@ -275,9 +275,9 @@ def main():
     _region_placeholder = col_region.empty()
 
     with col_actions:
-        c_refresh, c_info, c_theme = st.columns([1.1, 0.9, 0.9], gap="small", vertical_alignment="bottom")
+        c_refresh, c_info, c_theme = st.columns([1.8, 0.9, 0.9], gap="small", vertical_alignment="bottom")
         with c_refresh:
-            if st.button("🔄 更新", use_container_width=True, help="手動連線中央氣象署取得最新預報"):
+            if st.button("🔄最新預報", use_container_width=True, help="呼叫 CWA API 取得最新預報"):
                 with st.spinner("正在請求中央氣象署 API 並安全更新資料庫..."):
                     sync_res = weather_service.update_weather_forecast(force=True)
                     if sync_res["success"] and sync_res["updated"]:
@@ -295,7 +295,7 @@ def main():
                     """
                     ##### 1. 資料來源與性質
                     - **資料集**：交通部中央氣象署 (CWA) `F-D0047-091`「臺灣各縣市未來 1 週逐 12 小時天氣預報」。
-                    - **預報性質**：本系統呈現為**「未來一週天氣預報」**（由數值模型預測產製），非測站之即時觀測數據。
+                    - **預報性質**：本系統呈現為「未來一週天氣預報」（由數值模型預測產製），非測站之即時觀測數據。
 
                     ##### 2. 六大氣象分區劃分
                     - **北部地區 (6)**：臺北市、新北市、基隆市、桃園市、新竹市、新竹縣
