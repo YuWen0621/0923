@@ -1,215 +1,190 @@
-# 🌤️ HW10：Taiwan Weather Forecast (台灣天氣預報應用程式)
+# 🌤️ 臺灣天氣預報應用程式 (Taiwan Weather Forecast)
 
-> **從氣象資料到互動式天氣預報應用程式**  
-> *資料獲取 · 資料分析 · 資料儲存 · 資料查詢 · 視覺化展示*  
-> *用程式探索天氣 · 用資料看見台灣 · 用程式連結真實世界，讓資料說出天氣的故事！*
+> **從中央氣象署開放資料到全方位互動式氣象儀表板**  
+> *資料擷取 (ETL) · 空間資料庫 (SQLite) · 資料視覺化 (Folium / Leaflet) · 雙版本展示 (Streamlit + Vercel)*
 
-[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![CWA API](https://img.shields.io/badge/CWA%20API-F--A0010--001-0066CC?style=for-the-badge)](https://opendata.cwa.gov.tw/)
+[![Vercel Live Demo](https://img.shields.io/badge/Vercel-Live%20Demo-black?style=for-the-badge&logo=vercel)](https://cwahw1-ten.vercel.app/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![CWA API](https://img.shields.io/badge/CWA%20API-F--D0047--091-0066CC?style=for-the-badge)](https://opendata.cwa.gov.tw/)
 [![SQLite](https://img.shields.io/badge/SQLite-data.db-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Web%20App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![Folium](https://img.shields.io/badge/Folium-Map%20Visual-77B829?style=for-the-badge&logo=leaflet&logoColor=white)](https://python-visualization.github.io/folium/)
 
 ---
 
-## 🎯 作業目標與學習成果 (Learning Objectives)
+## 🌐 線上即時展示 (Live Demo)
 
-本專案為 **HW10 Taiwan Weather Forecast** 實作成果。串聯氣象開放資料與現代化 Python 資料處理技術，達成以下核心能力：
+🔗 **Vercel 線上部署版**：[https://cwahw1-ten.vercel.app/](https://cwahw1-ten.vercel.app/)
 
-- [x] **學會使用 Open Data API**：向中央氣象署 (CWA) 呼叫 RESTful API 取得 JSON 格式天氣預報。
-- [x] **掌握 JSON 資料結構分析**：剖析多層巢狀 Dictionary / List 結構，精準擷取高低溫數據。
-- [x] **建立 SQLite 資料庫**：正規化設計資料表，使用 SQL 進行資料儲存與查詢驗證。
-- [x] **使用 Streamlit 製作互動式 Web App**：打造下拉選單、走勢折線圖與動態資料表格。
-- [x] **空間資訊視覺化 (加分功能)**：整合 Folium 繪製全台各區平均溫度色標互動地圖。
+本專案提供無需本機安裝即可在瀏覽器體驗的線上版本，具備完整的臺灣六大分區氣溫地圖、深淺色主題切換、七日氣溫走勢圖以及即時 CWA API 連線更新功能。
 
 ---
 
-## 📊 作業要求與評分標準 (Grading Rubric)
+## 📖 專案簡介與核心特色 (Introduction & Features)
 
-| 大項 | 核心目標 | 配分 | 細部評分要點 |
-| :--- | :--- | :---: | :--- |
-| **任務 1：取得 CWA API 資料** | 使用 CWA API 取得台灣六大區域一週天氣預報（JSON 格式） | **20%** | • 取得資料 (10%)<br>• 觀察 JSON (5%)<br>• 程式品質 (5%) |
-| **任務 2：分析 JSON，提取氣溫資料** | 解析 JSON 結構，擷取各地區每日 `MinT`（最低溫）與 `MaxT`（最高溫） | **20%** | • 提取正確 (10%)<br>• 觀察資料 (5%)<br>• 程式品質 (5%) |
-| **任務 3：存入 SQLite 資料庫** | 設計 `TemperatureForecasts` 資料表並將預報資料寫入 `data.db` | **20%** | • 儲存資料 (10%)<br>• 查詢驗證 (5%)<br>• 程式品質 (5%) |
-| **任務 4：Streamlit 氣溫預報 Web App** | 讀取 SQLite 資料庫，提供分區下拉選單、繪製折線圖與一週資料表 | **40%** | • 下拉選單 (10%)<br>• 折線圖與表格 (15%)<br>• SQLite 查詢 (10%)<br>• 程式品質 (5%) |
-| **任務 5：進階地圖視覺化 (Optional)** | 整合 Folium 繪製互動式地圖，按均溫動態套色與資訊浮動卡片 | **加分項** | • 四色溫標分類<br>• 地圖 Marker 與 Popup 互動 |
+本專案對接交通部中央氣象署 (CWA) 開放資料 API，自動獲取並處理臺灣未來一週逐 12 小時預報資料，經過空間與統計聚合後，呈現六大氣象分區之溫度、天氣現象與降雨機率。
 
----
-
-## 🔄 系統架構與資料處理管線 (Data Pipeline)
-
-```mermaid
-flowchart LR
-    A["① CWA Open Data API<br>(F-A0010-001)"] -->|"Requests (JSON)"| B["② Python<br>(analysis & parsing)"]
-    B -->|"結構化轉換 (Pandas)"| C[("③ SQLite 資料庫<br>(data.db)")]
-    C -->|"SQL 讀取查詢"| D["④ Streamlit<br>(Web App)"]
-    D --> E["⑤ 成果儀表板<br>(折線圖 / 表格 / 地圖)"]
-```
+### 核心功能亮點
+1. **雙架構版本支援 (Two Deployment Models)**：
+   * **本機桌面端 (Streamlit)**：基於 SQLite 資料庫與 Folium 打造，支援完整的本地資料持久化、事務寫入與安全更新機制。
+   * **雲端網頁端 (Vercel)**：基於 Serverless Functions (Python) 與純前端靜態頁面 (Leaflet.js + Chart.js)，零外部資料庫依賴，適合輕量快速部署。
+2. **臺灣六大分區精確聚合**：
+   * 整合全臺 22 縣市資料，劃分北部、中部、南部、東北部、東部、東南部六大氣象分區。
+   * 數值氣溫取平均值（保留一位小數）；天氣現象採眾數 (Mode) 統計；降雨機率採縣市有效預報加權平均。
+3. **沉浸式空間視覺化 (Interactive Map)**：
+   * 整合 GeoJSON 分區邊界，支援 Hover 高亮與點擊互動。
+   * 依據平均溫度分級套色：偏涼 (<20°C 藍)、舒適 (20–25°C 綠)、偏熱 (25–30°C 黃)、炎熱 (≥30°C 紅)。
+   * **雙主題地圖底圖**：淺色模式採用 OpenStreetMap；深色模式採用 Esri `World_Dark_Gray_Base`。
+4. **即時新鮮度檢查與手動安全更新**：
+   * 內建 6 小時自動過期判定，支援按鈕一鍵手動向 CWA API 請求最新數據。
+   * 嚴密防護：若 API 連線異常或回傳資料不完整，系統自動維持既有資料，絕不損毀資料庫或造成空白頁面。
 
 ---
 
-## 🗺️ 涵蓋之台灣六大區域 (Target Regions)
+## 📂 專案檔案結構與職責清單 (Project Structure)
 
-本專案完整支援中央氣象署預報劃分之台灣六大分區：
-1. **北部地區**
-2. **中部地區**
-3. **南部地區**
-4. **東北部地區**
-5. **東部地區**
-6. **東南部地區**
-
----
-
-## 🗄️ 資料庫結構設計 (Database Schema)
-
-資料庫採用 SQLite（檔案名：`data.db`），建立 `TemperatureForecasts` 資料表：
-
-### 資料表綱要 (DDL)
-```sql
-CREATE TABLE IF NOT EXISTS TemperatureForecasts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    regionName TEXT NOT NULL,       -- 地區名稱（例：中部地區、北部地區）
-    dataDate TEXT NOT NULL,         -- 預報日期（格式：YYYY-MM-DD）
-    mint REAL NOT NULL,             -- 當日最低氣溫 (°C)
-    maxt REAL NOT NULL              -- 當日最高氣溫 (°C)
-);
-```
-
-### 資料提取結構範例 (Preview)
-| regionName | dataDate | mint | maxt |
-| :--- | :---: | :---: | :---: |
-| 北部地區 | 2026-04-14 | 18 | 26 |
-| 中部地區 | 2026-04-14 | 20 | 30 |
-| 南部地區 | 2026-04-14 | 22 | 31 |
-
-### 必備驗證查詢 (Verification Queries)
-```sql
--- 1. 列出資料庫中所有不重複地區名稱
-SELECT DISTINCT regionName FROM TemperatureForecasts;
-
--- 2. 查詢特定地區（如：中部地區）之一週氣溫預報
-SELECT * FROM TemperatureForecasts WHERE regionName = '中部地區';
-```
-
----
-
-## 🖥️ Streamlit 互動介面功能 (Web App Specification)
-
-### 1. 下拉選單選擇地區
-- 透過 `st.selectbox("Select Region", regions)` 提供六大分區動態切換。
-- 選取後觸發 SQL 查詢：`SELECT dataDate, mint, maxt FROM TemperatureForecasts WHERE regionName = ?`
-
-### 2. 一週最高與最低溫折線圖
-- X 軸：日期區間（7 天預報，如 `04/14 ~ 04/20`）。
-- Y 軸：氣溫數值（`10°C ~ 40°C`）。
-- 雙線走勢：
-  - 🔴 **MaxT**：最高氣溫折線
-  - 🔵 **MinT**：最低氣溫折線
-
-### 3. 一週數據明細表
-- 欄位包含：`Date` (預報日期)、`MinT` (最低溫)、`MaxT` (最高溫)。
-- 清楚呈現一週每日氣溫細節。
-
----
-
-## 🗺️ 進階加分功能：台灣地圖視覺化 (Folium Map)
-
-在 Web App 整合互動式台灣地圖，在地圖上標記六大區域中心點，並依照該日**平均氣溫**（`(MinT + MaxT) / 2`）動態呈現對應色塊：
-
-| 氣溫範圍 | 代表色標 | 視覺意義 |
-| :---: | :---: | :--- |
-| `< 20°C` | 🔵 藍色 | 偏冷 / 需添衣保暖 |
-| `20 ~ 25°C` | 🟢 綠色 | 舒適宜人 |
-| `25 ~ 30°C` | 🟡 黃色 | 溫暖偏熱 |
-| `> 30°C` | 🔴 紅色 | 酷熱高溫 |
-
-- **點擊彈窗互動 (Popup)**：點擊標記點可查看地區名稱、日期與當日之最低溫 / 最高溫資訊。
-
----
-
-## 📂 建議專案結構 (Project Structure)
+專案包含本機 Streamlit 應用程式與雲端 Vercel Serverless 網頁應用程式，兩者共享核心資料爬取與解析邏輯。
 
 ```text
-HW10_weather/
-├── fetch_weather.py      # 任務 1：呼叫 CWA API 取得原始 JSON 資料
-├── parse_weather.py      # 任務 2：分析 JSON 結構，擷取各地區 MinT / MaxT 氣溫數據
-├── database.py           # 任務 3：建立 SQLite data.db 與 TemperatureForecasts 資料表
-├── app.py                # 任務 4 & 5：Streamlit 互動 Web 應用與 Folium 地圖呈現
-├── data.db               # SQLite 本地資料庫檔案（由腳本執行生成）
-├── weather_data.csv      # (可選) 中間產物，方便除錯檢驗
-├── requirements.txt      # 專案依賴套件清單
-├── .env.example          # 環境變數設定範例
-├── .gitignore            # Git 忽略清單（排除 .env, data.db 等）
-└── README.md             # 本專案完整說明文件
+0923/
+├── api/
+│   └── weather.py            # [Vercel] Python Serverless API 端點
+├── public/
+│   ├── index.html            # [Vercel] 靜態網頁骨架與排版
+│   ├── style.css             # [Vercel] 深淺色主題與自適應樣式
+│   ├── app.js                # [Vercel] 前端互動、Leaflet 地圖與 Chart.js 圖表邏輯
+│   └── taiwan_regions.geojson# [Vercel] 前端載入之六大分區邊界向量圖
+├── app.py                    # [Streamlit] 本機 Streamlit 主程式
+├── database.py               # [Streamlit] SQLite 資料表建立、資料寫入事務與驗證查詢
+├── data.db                   # [Streamlit] 本機 SQLite 預報資料庫 (本機產生，不列入 Git)
+├── checkdb.py                # [Streamlit] 資料庫快速查詢測試腳本
+├── fetch_weather.py          # [Shared] CWA API 網路連線與資料抓取模組
+├── parse_weather.py          # [Shared] 原始 JSON 解析與六大分區聚合演算法
+├── weather_service.py        # [Shared] 集中式更新流程、資料新鮮度檢查與標準化輸出
+├── taiwan_regions.geojson    # [Shared] 臺灣六大氣象分區 GeoJSON 原始定義檔
+├── weather_raw.json          # [Shared] CWA API 原始回應 JSON 備份檔
+├── requirements.txt          # [Shared] Python 依賴套件清單
+├── vercel.json               # [Vercel] Vercel 路由與構建設定檔
+├── .env                      # [Shared] 本地環境變數與私密金鑰 (嚴禁提交至 Git)
+├── .env.example              # [Shared] 環境變數配置範例範本
+├── .gitignore                # [Documentation/Configuration] Git 版本控制忽略清單
+├── README.md                 # [Documentation/Configuration] 專案完整說明文件
+└── workflow.md               # [Documentation/Configuration] 專案完整實作與開發歷程紀錄
 ```
+
+### 檔案用途與分類對照表
+
+| 檔案路徑 | 分類標籤 | 核心職責與用途說明 |
+| :--- | :---: | :--- |
+| `app.py` | **Streamlit** | Streamlit 應用程式進入點；負責使用者介面、Folium 地圖整合、Matplotlib 走勢圖與側邊欄面板。 |
+| `database.py` | **Streamlit** | 管理 SQLite (`data.db`) 連線、`TemperatureForecasts` 與 `SyncMetadata` 資料表初始化及事務寫入。 |
+| `data.db` | **Streamlit** | 本地 SQLite 實體資料庫檔案；存放清洗後的氣象預報記錄。 |
+| `checkdb.py` | **Streamlit** | 開發階段除錯腳本；用於快速執行 SQL 查詢確認南部地區預報數據。 |
+| `api/weather.py` | **Vercel** | Vercel Serverless Function；在伺服器端調用爬取與解析邏輯，提供 `/api/weather` REST 端點，隔離 API 金鑰。 |
+| `public/index.html` | **Vercel** | Vercel 部署之前端入口頁面；包含頂部控制列、地圖容器、資訊面板與彈窗結構。 |
+| `public/style.css` | **Vercel** | 純 CSS 樣式表；完整實現淺色與深色主題切換、響應式佈局與按鈕微動畫。 |
+| `public/app.js` | **Vercel** | 前端核心邏輯；負責呼叫 API、驅動 Leaflet 地圖、更新色標 Marker 與繪製 Chart.js 七日折線圖。 |
+| `public/taiwan_regions.geojson` | **Vercel** | 放置於靜態公開目錄的分區邊界向量圖檔，供 Leaflet 進行非同步讀取繪製。 |
+| `vercel.json` | **Vercel** | Vercel 平台路由重寫規則設定；將 `/api/*` 導向 Python 函數，其餘請求導向 `public/`。 |
+| `fetch_weather.py` | **Shared** | 負責發起 HTTP 請求至中央氣象署 Open Data API，並包含自動容錯降級機制。 |
+| `parse_weather.py` | **Shared** | 解析 CWA 複雜巢狀 JSON 結構，執行六大分區的高低溫、降雨機率與天氣現象眾數聚合。 |
+| `weather_service.py` | **Shared** | 業務邏輯服務層；串聯抓取、解析、入庫及 6 小時資料新鮮度排程判定。 |
+| `taiwan_regions.geojson` | **Shared** | 臺灣六大分區 GeoJSON 空間數據，供本機 Streamlit 載入繪圖。 |
+| `weather_raw.json` | **Shared** | CWA API 原始回應之本地快取備份，便於離線測試與解析驗證。 |
+| `requirements.txt` | **Shared** | 宣告 Python 執行環境所需套件版本清單。 |
+| `.env` | **Shared** | 儲存本機執行的私密 API Key；受 `.gitignore` 保護，絕不公開。 |
+| `.env.example` | **Shared** | 提供給協作者或部署環境的環境變數設定範本。 |
+| `.gitignore` | **Documentation/Configuration** | 定義 Git 排除追蹤之檔案（如 `.env`, `data.db`, `__pycache__/`）。 |
+| `README.md` | **Documentation/Configuration** | 專案介紹、架構說明、檔案導覽與本機/雲端部署指南。 |
+| `workflow.md` | **Documentation/Configuration** | 專案開發歷程、實作階段里程碑、技術選型與問題解決復盤報告。 |
 
 ---
 
-## 🚀 快速開始與執行步驟 (Quick Start)
+## ⚙️ 環境變數配置 (Environment Variables)
 
-### 步驟 1：建立與啟動虛擬環境 (建議)
+本專案嚴格遵循安全性規範，**所有 API 金鑰均保存在環境變數中，絕不寫死於程式碼或暴露給前端**。
 
+請參考 [`.env.example`](file:///c:/Users/yuwen/Downloads/0923-main/0923/.env.example) 建立本機 [`.env`](file:///c:/Users/yuwen/Downloads/0923-main/0923/.env) 檔案：
+
+```ini
+# 中央氣象署開放資料平臺 API 授權碼 (必填)
+CWA_API_KEY=YOUR_CWA_API_KEY_HERE
+
+# 資料集 ID (選填，預設為 F-D0047-091)
+CWA_DATASET_ID=F-D0047-091
+
+# 自動更新檢查週期 (選填，預設 6 小時)
+CWA_REFRESH_INTERVAL_HOURS=6
+```
+
+> **取得 API Key 方式**：前往 [中央氣象署氣象資料開放平臺](https://opendata.cwa.gov.tw/) 免費註冊帳號，於會員專區取得個人授權碼。
+
+---
+
+## 💻 本機執行指南：Streamlit 應用程式
+
+### 步驟 1：建立並啟用虛擬環境
 ```bash
 # 建立虛擬環境
 python -m venv venv
 
-# Windows 啟動
+# Windows 啟用
 venv\Scripts\activate
 
-# macOS / Linux 啟動
+# macOS / Linux 啟用
 source venv/bin/activate
 ```
 
-### 步驟 2：安裝必要套件
-
+### 步驟 2：安裝相依套件
 ```bash
 pip install -r requirements.txt
 ```
 
-> **必要套件清單 (`requirements.txt`)**：
-> - `requests`
-> - `pandas`
-> - `streamlit`
-> - `folium`
-> - `streamlit-folium`
-> - `python-dotenv`
+### 步驟 3：設定 API 金鑰
+於專案根目錄新增 `.env` 檔案並填入您的 `CWA_API_KEY`。
 
-### 步驟 3：設定 CWA API Key
-
-1. 至 [中央氣象署氣象資料開放平臺](https://opendata.cwa.gov.tw/) 登入並取得個人專屬授權碼。
-2. 建立 `.env` 檔案並填入金鑰：
-   ```ini
-   CWA_API_KEY=YOUR_CWA_API_KEY_HERE
-   ```
-
-### 步驟 4：執行資料處理 (一次即可)
-
-依序執行資料爬取、解析與存庫腳本：
-
+### 步驟 4：初始化資料庫 (可選)
+如需預先建立資料庫並填入初次資料，可執行：
 ```bash
-python fetch_weather.py
-python parse_weather.py
 python database.py
 ```
-> 執行完成後，將在目錄生成 `data.db`，且內含完整六大分區之一週預報。
 
-### 步驟 5：啟動 Web App
-
+### 步驟 5：啟動 Streamlit
 ```bash
 streamlit run app.py
 ```
-啟動後於瀏覽器開啟 `http://localhost:8501` 即可瀏覽互動式天氣預報儀表板！
+啟動後，瀏覽器將自動開啟 `http://localhost:8501`。使用者可在介面中查看臺灣分區地圖、點選區塊展開七日氣象折線圖，或點擊「🔄最新預報」透過後端安全更新資料庫。
 
 ---
 
-## ⚠️ 重要注意事項 (Submission Checklist)
+## ☁️ 雲端架構與 Vercel 部署 (Vercel Architecture)
 
-1. 🔑 **金鑰規範**：請務必使用**自己申請的 CWA API Key**，切勿使用他人或教師提供的金鑰繳交。
-2. 🚫 **架構規範**：**Streamlit 必須從 SQLite 查詢資料**，不可在 Streamlit 應用程式中直接呼叫 CWA API。
-3. 📍 **完整區域**：確認六個分區（北部、中部、南部、東北部、東部、東南部）資料皆已完整入庫。
-4. 📅 **資料週期**：圖表與表格需完整呈現一週（7 天）預報資料。
-5. 🌟 **進階選做**：台灣地圖視覺化為加分功能，請先確保 1~4 項核心功能運作無誤後再行實作。
+### 架構設計理念
+Vercel 屬於無伺服器 (Serverless) 架構，其執行環境具有「短暫存續 (Ephemeral)」與「檔案系統唯讀」的特性，不適合本機 SQLite 資料庫的持續寫入。因此本專案規劃了極簡且高相容的無狀態架構：
+
+1. **後端無狀態 API (`api/weather.py`)**：
+   * 採用 Python 原生 `http.server.BaseHTTPRequestHandler` 實現輕量 Serverless 函數。
+   * 直接重用 `fetch_weather.py` 與 `parse_weather.py`，於記憶體中即時完成資料抓取、聚合與結構化。
+   * 透過 Vercel Project Settings 設定 `CWA_API_KEY`，確保前端瀏覽器完全無法觸及金鑰。
+2. **前端靜態呈現 (`public/`)**：
+   * 使用標準 HTML5、Vanilla CSS 與 JavaScript。
+   * 地圖採用 **Leaflet.js**（Folium 的底層引擎），支援淺色 OSM 底圖與深色 Esri `World_Dark_Gray_Base` 底圖無縫切換。
+   * 折線圖採用 **Chart.js**，提供平滑流暢的溫度走勢圖與 Tooltip。
+3. **快取與更新機制**：
+   * 伺服器端實施實例內記憶體快取與 HTTP Cache-Control 標頭（預設快取 6 小時）。
+   * 當使用者在網頁點選「call API取得最新預報」時，前端送出帶有 `?force=1` 之請求，繞過快取即時取得中央氣象署最新預報。
+
+### 部署至 Vercel 步驟
+1. 將程式碼推送到 GitHub 儲存庫。
+2. 登入 [Vercel](https://vercel.com/)，點選 **Add New Project** 並匯入該儲存庫。
+3. 在 **Settings → Environment Variables** 新增：
+   * Name: `CWA_API_KEY`
+   * Value: `<您的中央氣象署授權碼>`
+4. 點選 **Deploy**，幾分鐘內即完成自動構建與全球上線。
 
 ---
 
-*用程式連結真實世界，讓資料說出天氣的故事！*
+## 📜 授權與資料來源聲明
+* **資料來源**：交通部中央氣象署 (CWA) 開放資料平臺 `F-D0047-091`「臺灣各縣市未來 1 週逐 12 小時天氣預報」。
+* **底圖版權**：
+  * Light Mode: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
+  * Dark Mode: Tiles © [Esri](https://www.esri.com/) — Esri, DeLorme, NAVTEQ.
