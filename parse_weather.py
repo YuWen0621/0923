@@ -148,8 +148,8 @@ def aggregate_region_forecast(locations):
             mint_list = agg["mint"]
             if maxt_list and mint_list:
                 result[region][date_str] = {
-                    "maxt": round(sum(maxt_list) / len(maxt_list)),
-                    "mint": round(sum(mint_list) / len(mint_list)),
+                    "maxt": round(sum(maxt_list) / len(maxt_list), 1),
+                    "mint": round(sum(mint_list) / len(mint_list), 1),
                 }
 
     return result
